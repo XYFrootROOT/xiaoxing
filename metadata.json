@@ -1,0 +1,6 @@
+{
+  "name": "小星科创",
+  "description": "小星科创浏览器 (Xiaoxing Tech Browser) - 现代科技风极速安全的 Android 浏览器",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
