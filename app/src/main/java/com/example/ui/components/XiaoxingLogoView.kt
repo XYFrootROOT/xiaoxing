@@ -18,18 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.R
-import com.example.ui.theme.CrimsonFlame
-import com.example.ui.theme.GoldenAmber
-import com.example.ui.theme.SakuraBlossom
+import com.example.ui.theme.CausticAmber
+import com.example.ui.theme.CoolBrandCrimson
+import com.example.ui.theme.PrismaticCyan
 
 @Composable
 fun XiaoxingLogoView(
-    size: Dp = 72.dp,
+    size: Dp = 76.dp,
     animated: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -39,7 +40,7 @@ fun XiaoxingLogoView(
             initialValue = 0f,
             targetValue = 360f,
             animationSpec = infiniteRepeatable(
-                animation = tween(10000, easing = LinearEasing),
+                animation = tween(12000, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             ),
             label = "Rotation"
@@ -57,26 +58,27 @@ fun XiaoxingLogoView(
         modifier = modifier.size(size),
         contentAlignment = Alignment.Center
     ) {
-        // Glowing spinning aura ring
+        // High-end crystalline ring: crisp white specular with subtle optical refraction flare
         Box(
             modifier = Modifier
                 .size(size)
                 .rotate(rotationAngle)
                 .border(
-                    width = 2.5.dp,
+                    width = 1.6.dp,
                     brush = Brush.sweepGradient(
                         listOf(
-                            CrimsonFlame,
-                            GoldenAmber,
-                            SakuraBlossom,
-                            CrimsonFlame
+                            Color.White.copy(alpha = 0.85f),
+                            PrismaticCyan.copy(alpha = 0.50f),
+                            CausticAmber.copy(alpha = 0.40f),
+                            CoolBrandCrimson.copy(alpha = 0.60f),
+                            Color.White.copy(alpha = 0.85f)
                         )
                     ),
                     shape = CircleShape
                 )
         )
 
-        // Character Avatar in center
+        // Character Avatar with smooth circle cut & inner glass specular
         Image(
             painter = painterResource(id = R.drawable.redhair_avatar),
             contentDescription = "小星科创头像",

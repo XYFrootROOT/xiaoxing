@@ -19,20 +19,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import com.example.ui.theme.CrimsonFlame
-import com.example.ui.theme.DarkCherryNight
-import com.example.ui.theme.GoldenAmber
-import com.example.ui.theme.ObsidianCard
-import com.example.ui.theme.RubyAccent
-import com.example.ui.theme.SakuraBlossom
+import com.example.ui.theme.CausticAmber
+import com.example.ui.theme.CoolBrandCrimson
+import com.example.ui.theme.CoolObsidianBase
+import com.example.ui.theme.LocalAnimationsEnabled
+import com.example.ui.theme.PrismaticCyan
 import kotlin.random.Random
 
-private data class SakuraPetal(
+private data class CosmicParticle(
     val x: Float,
     val y: Float,
     val radius: Float,
     val speed: Float,
-    val alphaBase: Float,
+    val baseAlpha: Float,
     val color: Color
 )
 
@@ -41,63 +40,71 @@ fun StarryCosmicBackground(
     enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    val isDark = isSystemInDarkTheme() || MaterialTheme.colorScheme.background == DarkCherryNight
+    val isDark = isSystemInDarkTheme() || MaterialTheme.colorScheme.background == CoolObsidianBase
+    val animationsEnabled = LocalAnimationsEnabled.current && enabled
 
-    if (!enabled) {
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        )
-        return
-    }
-
-    val infiniteTransition = rememberInfiniteTransition(label = "PetalTransition")
-    val animProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 16000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "PetalMovement"
-    )
-
-    val petals = remember {
-        val rand = Random(42)
-        List(45) {
-            val pickColor = when (rand.nextInt(3)) {
-                0 -> CrimsonFlame
-                1 -> SakuraBlossom
-                else -> GoldenAmber
-            }
-            SakuraPetal(
-                x = rand.nextFloat(),
-                y = rand.nextFloat(),
-                radius = rand.nextFloat() * 2.8f + 1.2f,
-                speed = rand.nextFloat() * 0.45f + 0.2f,
-                alphaBase = rand.nextFloat() * 0.45f + 0.2f,
-                color = pickColor
-            )
-        }
-    }
-
+    // Serene multi-stop celestial background gradient (deep space navy into indigo-sapphire slate)
     val bgBrush = if (isDark) {
         Brush.verticalGradient(
             colors = listOf(
-                DarkCherryNight,
-                ObsidianCard,
-                Color(0xFF1F0D1B)
+                Color(0xFF070A10), // Ultra deep cosmic void
+                Color(0xFF0C111C), // Deep celestial navy
+                Color(0xFF0F1526), // Indigo slate
+                Color(0xFF131828)  // Grounded calm cosmic night
             )
         )
     } else {
         Brush.verticalGradient(
             colors = listOf(
-                Color(0xFFFFF0F5),
-                Color(0xFFFFE3EC),
-                Color(0xFFFFD6E0)
+                Color(0xFFF8FAFC),
+                Color(0xFFF1F5F9),
+                Color(0xFFE2E8F0)
             )
         )
+    }
+
+    if (!enabled) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(bgBrush)
+        )
+        return
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "CosmicAmbientTransition")
+    val animProgress by if (animationsEnabled) {
+        infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 28000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "CausticDrift"
+        )
+    } else {
+        remember { androidx.compose.animation.core.Animatable(0.2f) }.asState()
+    }
+
+    val particles = remember {
+        val rand = Random(42)
+        List(28) { index ->
+            val color = when (index % 4) {
+                0 -> Color(0xFF818CF8).copy(alpha = 0.55f) // Soft periwinkle indigo
+                1 -> PrismaticCyan.copy(alpha = 0.45f)      // Optical cyan
+                2 -> CoolBrandCrimson.copy(alpha = 0.50f)   // Brand rose accent
+                else -> Color(0xFFA78BFA).copy(alpha = 0.40f) // Gentle violet
+            }
+            CosmicParticle(
+                x = rand.nextFloat(),
+                y = rand.nextFloat(),
+                radius = rand.nextFloat() * 1.8f + 0.8f,
+                speed = rand.nextFloat() * 0.18f + 0.08f,
+                baseAlpha = rand.nextFloat() * 0.30f + 0.12f,
+                color = color
+            )
+        }
     }
 
     Box(
@@ -109,25 +116,61 @@ fun StarryCosmicBackground(
             val width = size.width
             val height = size.height
 
-            // Warm radiant aura from cherry blossom sun flare
+            // 1. Low-saturation blue-violet environmental caustics (depth without distracting from glass UI)
+            // Top-left calming cosmic indigo glow
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        CrimsonFlame.copy(alpha = if (isDark) 0.12f else 0.08f),
-                        GoldenAmber.copy(alpha = if (isDark) 0.05f else 0.04f),
+                        Color(0xFF4F46E5).copy(alpha = if (isDark) 0.07f else 0.04f),
                         Color.Transparent
                     ),
-                    center = Offset(width * 0.5f, height * 0.2f),
+                    center = Offset(width * 0.18f, height * 0.22f),
                     radius = width * 0.75f
                 )
             )
 
-            // Flowing glowing petals / embers
-            petals.forEach { p ->
-                val currentY = (p.y + animProgress * p.speed) % 1.0f
-                val driftX = (p.x + kotlin.math.sin((animProgress * 2f + p.y) * Math.PI.toFloat()) * 0.05f).mod(1.0f)
-                val alpha = (p.alphaBase + kotlin.math.sin((animProgress + p.x) * Math.PI.toFloat() * 2) * 0.2f)
-                    .coerceIn(0.1f, 0.85f) * (if (isDark) 1.0f else 0.6f)
+            // Top-right restrained rose-crimson brand glow
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        CoolBrandCrimson.copy(alpha = if (isDark) 0.06f else 0.035f),
+                        Color.Transparent
+                    ),
+                    center = Offset(width * 0.82f, height * 0.16f),
+                    radius = width * 0.65f
+                )
+            )
+
+            // Bottom-center celestial cyan rim glow
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        PrismaticCyan.copy(alpha = if (isDark) 0.045f else 0.03f),
+                        Color.Transparent
+                    ),
+                    center = Offset(width * 0.50f, height * 0.85f),
+                    radius = width * 0.80f
+                )
+            )
+
+            // 2. Slow drifting stardust particles
+            particles.forEach { p ->
+                val currentY = if (animationsEnabled) {
+                    (p.y + animProgress * p.speed) % 1.0f
+                } else {
+                    p.y
+                }
+                val driftX = if (animationsEnabled) {
+                    (p.x + kotlin.math.sin((animProgress * 1.6f + p.y) * Math.PI.toFloat()) * 0.03f).mod(1.0f)
+                } else {
+                    p.x
+                }
+                val alpha = if (animationsEnabled) {
+                    (p.baseAlpha + kotlin.math.sin((animProgress + p.x) * Math.PI.toFloat() * 2) * 0.12f)
+                        .coerceIn(0.06f, 0.55f) * (if (isDark) 0.85f else 0.50f)
+                } else {
+                    p.baseAlpha * 0.8f
+                }
 
                 drawCircle(
                     color = p.color.copy(alpha = alpha),

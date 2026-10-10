@@ -2,11 +2,15 @@ package com.example.ui.screens
 
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +31,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -36,14 +39,9 @@ import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Tab
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
@@ -57,7 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -67,9 +65,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.BrowserTab
-import com.example.ui.theme.CrimsonFlame
-import com.example.ui.theme.RubyAccent
-import com.example.ui.theme.SakuraBlossom
+import com.example.ui.components.StarryCosmicBackground
+import com.example.ui.theme.CoolBrandCrimson
+import com.example.ui.theme.LiquidGlassButton
+import com.example.ui.theme.LiquidGlassDefaults
+import com.example.ui.theme.LocalAnimationsEnabled
+import com.example.ui.theme.liquidGlassElevation
+import com.example.ui.theme.liquidGlassSurface
 
 @Composable
 fun TabsOverviewScreen(
@@ -83,94 +85,134 @@ fun TabsOverviewScreen(
     modifier: Modifier = Modifier
 ) {
     BackHandler { onBackToBrowser() }
+    val isDark = isSystemInDarkTheme()
 
-    var selectedTabIndex by remember { mutableIntStateOf(0) } // 0 = Standard, 1 = Incognito
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     val standardTabs = tabs.filter { !it.isIncognito }
     val incognitoTabs = tabs.filter { it.isIncognito }
     val displayedTabs = if (selectedTabIndex == 0) standardTabs else incognitoTabs
 
-    Surface(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.statusBars),
-        color = MaterialTheme.colorScheme.background
+            .windowInsetsPadding(WindowInsets.statusBars)
     ) {
+        StarryCosmicBackground(enabled = true)
+
         Column(modifier = Modifier.fillMaxSize()) {
-            // Header
-            Row(
+            // Liquid Glass Header with Elevation
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                    .liquidGlassElevation(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(18.dp),
+                        shadowColor = Color(0x45000000)
+                    )
+                    .liquidGlassSurface(
+                        shape = RoundedCornerShape(18.dp),
+                        refractionStrength = 12f,
+                        dispersion = 0.30f,
+                        isDark = isDark
+                    )
             ) {
-                Text(
-                    text = "标签页管理",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "标签页管理",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (displayedTabs.isNotEmpty()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (displayedTabs.isNotEmpty()) {
+                            IconButton(
+                                onClick = { onCloseAll(selectedTabIndex == 1) },
+                                modifier = Modifier.testTag("close_all_tabs_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DeleteSweep,
+                                    contentDescription = "全部关闭",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
                         IconButton(
-                            onClick = { onCloseAll(selectedTabIndex == 1) },
-                            modifier = Modifier.testTag("close_all_tabs_button")
+                            onClick = onBackToBrowser,
+                            modifier = Modifier.testTag("exit_tabs_overview_button")
                         ) {
                             Icon(
-                                imageVector = Icons.Default.DeleteSweep,
-                                contentDescription = "全部关闭",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "完成",
+                                tint = CoolBrandCrimson
                             )
                         }
-                    }
-
-                    IconButton(
-                        onClick = onBackToBrowser,
-                        modifier = Modifier.testTag("exit_tabs_overview_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "完成",
-                            tint = CrimsonFlame
-                        )
                     }
                 }
             }
 
-            // Mode Toggle Tabs: Standard vs Incognito
-            TabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = CrimsonFlame,
-                indicator = { tabPositions ->
-                    SecondaryIndicator(
-                        Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                        color = CrimsonFlame
+            // Tabs Selector Pill
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 4.dp)
+                    .liquidGlassElevation(
+                        elevation = 6.dp,
+                        shape = RoundedCornerShape(14.dp),
+                        shadowColor = Color(0x35000000)
+                    )
+                    .liquidGlassSurface(
+                        shape = RoundedCornerShape(14.dp),
+                        refractionStrength = 8f,
+                        dispersion = 0.2f,
+                        isDark = isDark,
+                        hasSheen = false,
+                        borderWidth = 0.8.dp
+                    )
+            ) {
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = CoolBrandCrimson,
+                    indicator = { tabPositions ->
+                        SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            color = CoolBrandCrimson
+                        )
+                    }
+                ) {
+                    Tab(
+                        selected = selectedTabIndex == 0,
+                        onClick = { selectedTabIndex = 0 },
+                        text = {
+                            Text(
+                                text = "普通 (${standardTabs.size})",
+                                fontWeight = if (selectedTabIndex == 0) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTabIndex == 0) CoolBrandCrimson else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                    Tab(
+                        selected = selectedTabIndex == 1,
+                        onClick = { selectedTabIndex = 1 },
+                        text = {
+                            Text(
+                                text = "无痕 (${incognitoTabs.size})",
+                                fontWeight = if (selectedTabIndex == 1) FontWeight.Bold else FontWeight.Normal,
+                                color = if (selectedTabIndex == 1) CoolBrandCrimson else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     )
                 }
-            ) {
-                Tab(
-                    selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
-                    text = {
-                        Text(
-                            text = "普通 (${standardTabs.size})",
-                            fontWeight = if (selectedTabIndex == 0) FontWeight.Bold else FontWeight.Normal
-                        )
-                    }
-                )
-                Tab(
-                    selected = selectedTabIndex == 1,
-                    onClick = { selectedTabIndex = 1 },
-                    text = {
-                        Text(
-                            text = "无痕 (${incognitoTabs.size})",
-                            fontWeight = if (selectedTabIndex == 1) FontWeight.Bold else FontWeight.Normal
-                        )
-                    }
-                )
             }
 
             // Grid of Tabs
@@ -185,10 +227,10 @@ fun TabsOverviewScreen(
                         Icon(
                             imageVector = if (selectedTabIndex == 1) Icons.Default.Shield else Icons.Default.Tab,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            modifier = Modifier.size(64.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                            modifier = Modifier.size(56.dp)
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         Text(
                             text = if (selectedTabIndex == 1) "暂无无痕标签页" else "没有打开的标签页",
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -201,13 +243,14 @@ fun TabsOverviewScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    contentPadding = PaddingValues(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    contentPadding = PaddingValues(14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(displayedTabs, key = { it.id }) { tab ->
-                        TabCardItem(
+                        TabGlassCardItem(
                             tab = tab,
+                            isDark = isDark,
                             isSelected = tab.id == currentTabId,
                             onSelect = { onSelectTab(tab.id) },
                             onClose = { onCloseTab(tab.id) }
@@ -217,33 +260,27 @@ fun TabsOverviewScreen(
             }
 
             // Bottom Add Action Bar
-            Surface(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets.navigationBars),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 6.dp
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                Row(
+                LiquidGlassButton(
+                    onClick = { onNewTab(selectedTabIndex == 1) },
+                    isPrimary = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.Center
+                        .height(50.dp)
+                        .testTag("tab_overview_new_tab_button")
                 ) {
-                    Button(
-                        onClick = { onNewTab(selectedTabIndex == 1) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .testTag("tab_overview_new_tab_button"),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = CrimsonFlame)
-                    ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = Color.White)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (selectedTabIndex == 1) "新建无痕标签页" else "新建普通标签页",
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                     }
                 }
@@ -253,36 +290,50 @@ fun TabsOverviewScreen(
 }
 
 @Composable
-private fun TabCardItem(
+private fun TabGlassCardItem(
     tab: BrowserTab,
+    isDark: Boolean,
     isSelected: Boolean,
     onSelect: () -> Unit,
     onClose: () -> Unit
 ) {
-    Card(
+    val animationsEnabled = LocalAnimationsEnabled.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed && animationsEnabled) 0.95f else 1.0f,
+        animationSpec = spring(dampingRatio = 0.65f, stiffness = 500f),
+        label = "TabCardScale"
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .clickable { onSelect() }
-            .then(
-                if (isSelected) {
-                    Modifier.border(
-                        width = 2.dp,
-                        brush = Brush.linearGradient(listOf(CrimsonFlame, RubyAccent)),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                } else Modifier
-            ),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 6.dp else 2.dp)
+            .scale(scale)
+            .liquidGlassElevation(
+                elevation = if (isSelected) 10.dp else 4.dp,
+                shape = RoundedCornerShape(16.dp),
+                shadowColor = if (isSelected) Color(0x60000000) else Color(0x35000000)
+            )
+            .liquidGlassSurface(
+                shape = RoundedCornerShape(16.dp),
+                refractionStrength = if (isSelected) 16f else 8f,
+                dispersion = 0.3f,
+                isDark = isDark,
+                borderWidth = if (isSelected) 1.5.dp else 0.8.dp
+            )
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onSelect
+            )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                    .padding(horizontal = 10.dp, vertical = 7.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (tab.favicon != null) {
@@ -295,7 +346,7 @@ private fun TabCardItem(
                     Icon(
                         imageVector = if (tab.isIncognito) Icons.Default.Shield else Icons.Default.Language,
                         contentDescription = null,
-                        tint = CrimsonFlame,
+                        tint = if (isSelected) CoolBrandCrimson else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -329,7 +380,8 @@ private fun TabCardItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(0.85f)
-                    .background(MaterialTheme.colorScheme.background),
+                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+                    .background(if (isDark) Color(0xFF0F131D).copy(alpha = 0.55f) else Color.White.copy(alpha = 0.50f)),
                 contentAlignment = Alignment.Center
             ) {
                 if (tab.thumbnail != null) {
@@ -344,8 +396,8 @@ private fun TabCardItem(
                         Icon(
                             imageVector = Icons.Default.Language,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
-                            modifier = Modifier.size(36.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.30f),
+                            modifier = Modifier.size(34.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -353,7 +405,7 @@ private fun TabCardItem(
                             fontSize = 10.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.60f),
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
                     }

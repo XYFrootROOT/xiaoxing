@@ -9,37 +9,37 @@ import androidx.compose.ui.graphics.Color
 import com.example.data.preferences.ThemeMode
 
 private val DarkColorScheme = darkColorScheme(
-    primary = CrimsonFlame,
+    primary = CoolBrandCrimson,
     onPrimary = Color.White,
-    primaryContainer = ObsidianCard,
-    onPrimaryContainer = RubyAccent,
-    secondary = SakuraBlossom,
-    onSecondary = DarkCherryNight,
-    tertiary = GoldenAmber,
-    background = DarkCherryNight,
+    primaryContainer = CoolGlassSurfaceElevated,
+    onPrimaryContainer = CoolBrandCrimsonLight,
+    secondary = PrismaticCyan,
+    onSecondary = CoolObsidianBase,
+    tertiary = CausticAmber,
+    background = CoolObsidianBase,
     onBackground = TextPrimaryDark,
-    surface = ObsidianCard,
+    surface = CoolGlassSurfaceDark,
     onSurface = TextPrimaryDark,
-    surfaceVariant = Color(0xFF261523),
+    surfaceVariant = Color(0xFF1B202C),
     onSurfaceVariant = TextSecondaryDark,
-    outline = CrimsonBorder,
+    outline = GlassBorderSubtleDark,
     error = ErrorRed
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = CrimsonFlame,
+    primary = CoolBrandCrimson,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFFFE5EC),
-    onPrimaryContainer = CrimsonFlame,
-    secondary = RubyAccent,
+    primaryContainer = Color(0xFFF1F5F9),
+    onPrimaryContainer = CoolBrandCrimson,
+    secondary = PrismaticCyan,
     onSecondary = Color.White,
-    background = SakuraLightBg,
-    onBackground = SakuraLightTextPrimary,
-    surface = SakuraLightSurface,
-    onSurface = SakuraLightTextPrimary,
-    surfaceVariant = Color(0xFFFFE8EE),
-    onSurfaceVariant = Color(0xFF7A4356),
-    outline = SakuraLightBorder,
+    background = Color(0xFFF8FAFC),
+    onBackground = TextPrimaryLight,
+    surface = CoolGlassSurfaceLight,
+    onSurface = TextPrimaryLight,
+    surfaceVariant = Color(0xFFE2E8F0),
+    onSurfaceVariant = TextSecondaryLight,
+    outline = GlassBorderSubtleLight,
     error = ErrorRed
 )
 

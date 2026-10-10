@@ -53,16 +53,20 @@ class MainActivity : ComponentActivity() {
             val settings by viewModel.settings.collectAsStateWithLifecycle()
 
             XiaoxingBrowserTheme(themeMode = settings.themeMode) {
-                MainBrowserApp(
-                    viewModel = viewModel,
-                    onShareUrl = { url, title ->
-                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, "$title\n$url")
+                androidx.compose.runtime.CompositionLocalProvider(
+                    com.example.ui.theme.LocalAnimationsEnabled provides settings.enableAnimations
+                ) {
+                    MainBrowserApp(
+                        viewModel = viewModel,
+                        onShareUrl = { url, title ->
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, "$title\n$url")
+                            }
+                            startActivity(Intent.createChooser(sendIntent, "分享网页链接"))
                         }
-                        startActivity(Intent.createChooser(sendIntent, "分享网页链接"))
-                    }
-                )
+                    )
+                }
             }
         }
     }

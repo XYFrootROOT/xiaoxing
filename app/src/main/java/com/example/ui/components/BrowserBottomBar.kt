@@ -3,19 +3,17 @@ package com.example.ui.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,7 +30,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,16 +38,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.BrowserTab
-import com.example.ui.theme.CrimsonFlame
-import com.example.ui.theme.RubyAccent
-import com.example.ui.theme.SakuraBlossom
+import com.example.ui.theme.CoolBrandCrimson
+import com.example.ui.theme.LiquidGlassButton
+import com.example.ui.theme.LiquidGlassDefaults
+import com.example.ui.theme.liquidGlassElevation
+import com.example.ui.theme.liquidGlassSurface
 
 @Composable
 fun BrowserBottomBar(
@@ -72,6 +70,7 @@ fun BrowserBottomBar(
     onShare: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = isSystemInDarkTheme()
     var showMoreMenu by remember { mutableStateOf(false) }
 
     AnimatedVisibility(
@@ -80,19 +79,30 @@ fun BrowserBottomBar(
         exit = slideOutVertically(targetOffsetY = { it }),
         modifier = modifier
     ) {
-        Surface(
+        // CoolApk × iOS 26 Floating Liquid Glass Navigation Island with Ambient Shadow
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-            tonalElevation = 8.dp,
-            shadowElevation = 8.dp
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .liquidGlassElevation(
+                    elevation = 14.dp,
+                    shape = RoundedCornerShape(LiquidGlassDefaults.pillCornerRadius),
+                    shadowColor = Color(0x60000000)
+                )
+                .liquidGlassSurface(
+                    shape = RoundedCornerShape(LiquidGlassDefaults.pillCornerRadius),
+                    refractionStrength = 16f,
+                    dispersion = 0.35f,
+                    isDark = isDark,
+                    borderWidth = 1.0.dp
+                )
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 6.dp),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -100,7 +110,7 @@ fun BrowserBottomBar(
                 IconButton(
                     onClick = onBack,
                     enabled = tab?.canGoBack == true || (tab != null && !tab.isHome),
-                    modifier = Modifier.testTag("nav_back_button")
+                    modifier = Modifier.size(48.dp).testTag("nav_back_button")
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -108,7 +118,7 @@ fun BrowserBottomBar(
                         tint = if (tab?.canGoBack == true || (tab != null && !tab.isHome)) {
                             MaterialTheme.colorScheme.onSurface
                         } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.30f)
                         }
                     )
                 }
@@ -117,7 +127,7 @@ fun BrowserBottomBar(
                 IconButton(
                     onClick = onForward,
                     enabled = tab?.canGoForward == true,
-                    modifier = Modifier.testTag("nav_forward_button")
+                    modifier = Modifier.size(48.dp).testTag("nav_forward_button")
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -125,39 +135,40 @@ fun BrowserBottomBar(
                         tint = if (tab?.canGoForward == true) {
                             MaterialTheme.colorScheme.onSurface
                         } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.30f)
                         }
                     )
                 }
 
-                // New Tab Button with fiery crimson/ruby gradient pill
-                Box(
+                // New Tab - Liquid Glass Button with iOS 26 spring dynamics
+                LiquidGlassButton(
+                    onClick = onNewTab,
+                    isPrimary = true,
+                    shape = CircleShape,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(
-                            brush = androidx.compose.ui.graphics.Brush.linearGradient(
-                                colors = listOf(CrimsonFlame, RubyAccent)
-                            )
-                        )
-                        .clickable { onNewTab() }
-                        .testTag("nav_new_tab_button"),
-                    contentAlignment = Alignment.Center
+                        .size(44.dp)
+                        .testTag("nav_new_tab_button")
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "新建标签页",
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
 
-                // Tabs Counter Pill
+                // Tabs Counter Pill with Crystal Border
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .size(38.dp)
+                        .liquidGlassSurface(
+                            shape = RoundedCornerShape(12.dp),
+                            refractionStrength = 8f,
+                            dispersion = 0.2f,
+                            isDark = isDark,
+                            hasSheen = false,
+                            borderWidth = 0.9.dp
+                        )
                         .clickable { onOpenTabsOverview() }
                         .testTag("nav_tabs_overview_button"),
                     contentAlignment = Alignment.Center
@@ -166,19 +177,19 @@ fun BrowserBottomBar(
                         text = "$tabCount",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
-                        color = CrimsonFlame
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 // Bookmark toggle
                 IconButton(
                     onClick = onToggleBookmark,
-                    modifier = Modifier.testTag("nav_bookmark_button")
+                    modifier = Modifier.size(48.dp).testTag("nav_bookmark_button")
                 ) {
                     Icon(
                         imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
                         contentDescription = "书签",
-                        tint = if (isBookmarked) CrimsonFlame else MaterialTheme.colorScheme.onSurface
+                        tint = if (isBookmarked) CoolBrandCrimson else MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -186,7 +197,7 @@ fun BrowserBottomBar(
                 Box {
                     IconButton(
                         onClick = { showMoreMenu = true },
-                        modifier = Modifier.testTag("nav_more_menu_button")
+                        modifier = Modifier.size(48.dp).testTag("nav_more_menu_button")
                     ) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
@@ -225,7 +236,8 @@ fun BrowserBottomBar(
                             text = {
                                 Text(
                                     if (tab?.isIncognito == true) "退出无痕模式" else "新建无痕标签",
-                                    color = CrimsonFlame
+                                    color = CoolBrandCrimson,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             },
                             onClick = {
